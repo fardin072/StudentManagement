@@ -1,4 +1,4 @@
-import { db, dbRun, dbGet, dbAll, randomUUID } from "./db";
+import { dbRun, dbGet, dbAll, randomUUID } from "./db";
 
 const firstNames = [
   "Ahmed", "Fatima", "Ali", "Zahra", "Karim", "Noor", "Hassan", "Aisha", "Ibrahim", "Maryam",

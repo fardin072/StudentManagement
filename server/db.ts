@@ -1,4 +1,3 @@
-import sqlite3 from "sqlite3";
 import { randomUUID } from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -8,40 +7,55 @@ const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, "..", "data.db");
 
-// Initialize SQLite database
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-  } else {
-    console.log("Connected to SQLite database at", dbPath);
-  }
-});
+// Lazy-loaded database instance
+let db: any = null;
+let sqlite3Module: any = null;
 
-// Enable foreign keys
-db.run("PRAGMA foreign_keys = ON");
+// Initialize database lazily on first use
+async function getDb() {
+  if (!db) {
+    // Lazy load sqlite3 only when actually needed
+    if (!sqlite3Module) {
+      sqlite3Module = (await import("sqlite3")).default;
+    }
+    db = new sqlite3Module.Database(dbPath, (err: any) => {
+      if (err) {
+        console.error("Database connection failed:", err);
+      } else {
+        console.log("Connected to SQLite database at", dbPath);
+      }
+    });
+    // Enable foreign keys
+    db.run("PRAGMA foreign_keys = ON");
+  }
+  return db;
+}
 
 // Promisify database operations
-function dbRun(sql: string, params: any[] = []): Promise<void> {
+async function dbRun(sql: string, params: any[] = []): Promise<void> {
+  const database = await getDb();
   return new Promise((resolve, reject) => {
-    db.run(sql, params, (err) => {
+    database.run(sql, params, (err: any) => {
       if (err) reject(err);
       else resolve();
     });
   });
 }
 
-function dbGet<T>(sql: string, params: any[] = []): Promise<T | undefined> {
+async function dbGet<T>(sql: string, params: any[] = []): Promise<T | undefined> {
+  const database = await getDb();
   return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
+    database.get(sql, params, (err: any, row: any) => {
       if (err) reject(err);
       else resolve(row as T | undefined);
     });
   });
 }
 
-function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
+async function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
+  const database = await getDb();
   return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
+    database.all(sql, params, (err: any, rows: any) => {
       if (err) reject(err);
       else resolve((rows || []) as T[]);
     });
@@ -166,4 +180,4 @@ async function initializeDatabase() {
   }
 }
 
-export { db, dbRun, dbGet, dbAll, initializeDatabase, randomUUID };
+export { getDb, dbRun, dbGet, dbAll, initializeDatabase, randomUUID };
