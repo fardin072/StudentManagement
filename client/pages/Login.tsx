@@ -66,9 +66,6 @@ export default function Login() {
 
           <Card className="border-primary/30 shadow-lg">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-lg">
-                B
-              </div>
               <CardTitle className="text-3xl font-bold text-primary">
                 Biology Care
               </CardTitle>
